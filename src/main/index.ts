@@ -27,6 +27,7 @@ import electronSquirrelStartup from "electron-squirrel-startup";
 import MemoryStore from "./memory-store";
 import playerStateStore, { PlayerState, VideoState } from "./player-state-store";
 import { MemoryStoreSchema, StoreSchema, TrayIconStyle } from "../shared/store/schema";
+import { getTranslations, normalizeLanguage } from "../shared/i18n";
 
 import CompanionServer from "./integrations/companion-server";
 import CustomCSS from "./integrations/custom-css";
@@ -282,14 +283,14 @@ if (app.isPackaged && !shouldDisableUpdates() && !YTMD_DISABLE_UPDATES) {
     url: updateFeed
   });
   autoUpdater.on("checking-for-update", () => {
-    if (appLaunchUpdateCheck) memoryStore.set("ytmViewLoadingStatus", "Checking for updates...");
+    if (appLaunchUpdateCheck) memoryStore.set("ytmViewLoadingStatus", getLoadingText().checkingForUpdates);
     if (settingsWindow) settingsWindow.webContents.send("app:checkingForUpdates");
   });
   autoUpdater.on("update-available", () => {
     log.info("Application update available");
     memoryStore.set("appUpdateAvailable", true);
     appUpdateAvailable = true;
-    if (appLaunchUpdateCheck) memoryStore.set("ytmViewLoadingStatus", "Downloading update...");
+    if (appLaunchUpdateCheck) memoryStore.set("ytmViewLoadingStatus", getLoadingText().downloadingUpdate);
     if (settingsWindow) settingsWindow.webContents.send("app:updateAvailable");
   });
   autoUpdater.on("update-not-available", () => {
@@ -359,6 +360,14 @@ function anyShortcutChanged(newState: Readonly<StoreSchema>, oldState: Readonly<
   return false;
 }
 
+function getDefaultLanguage() {
+  return normalizeLanguage(Intl.DateTimeFormat().resolvedOptions().locale);
+}
+
+function getLoadingText() {
+  return getTranslations(store.has("general.language") ? store.get("general.language") : getDefaultLanguage()).app.loading;
+}
+
 // Create the persistent config store
 const store = new Conf<StoreSchema>({
   configName: "config",
@@ -372,6 +381,7 @@ const store = new Conf<StoreSchema>({
     general: {
       disableHardwareAcceleration: false,
       hideToTrayOnClose: false,
+      language: getDefaultLanguage(),
       showNotificationOnSongChange: false,
       startOnBoot: false,
       startMinimized: false
@@ -440,6 +450,9 @@ const store = new Conf<StoreSchema>({
       if (!store.has("appearance.zoom")) {
         store.set("appearance.zoom", 100);
       }
+      if (!store.has("general.language")) {
+        store.set("general.language", getDefaultLanguage());
+      }
     },
     ">=2.0.1": store => {
       if (!store.has("lastfm.scrobblePercent")) {
@@ -458,6 +471,11 @@ const store = new Conf<StoreSchema>({
     }
   }
 });
+
+if (!store.has("general.language")) {
+  store.set("general.language", getDefaultLanguage());
+}
+
 store.onDidAnyChange(async (newState, oldState) => {
   if (settingsWindow !== null) {
     settingsWindow.webContents.send("settings:stateChanged", newState, oldState);
@@ -1052,7 +1070,7 @@ function isPreventedNavOrRedirect(url: URL): boolean {
 const createYTMView = (): void => {
   memoryStore.set("ytmViewLoadTimedout", false);
   memoryStore.set("ytmViewLoading", true);
-  memoryStore.set("ytmViewLoadingStatus", "Initializing...");
+  memoryStore.set("ytmViewLoadingStatus", getLoadingText().initializing);
 
   ytmView = new BrowserView({
     webPreferences: {
@@ -1188,12 +1206,12 @@ const createYTMView = (): void => {
 
   // Loading status event handlers
   ytmView.webContents.on("did-start-loading", () => {
-    memoryStore.set("ytmViewLoadingStatus", "Loading YouTube Music...");
+    memoryStore.set("ytmViewLoadingStatus", getLoadingText().loadingYouTubeMusic);
   });
 
   ytmView.webContents.on("did-stop-loading", () => {
     if (!memoryStore.get("ytmViewLoadingError")) {
-      memoryStore.set("ytmViewLoadingStatus", "Loaded YouTube Music");
+      memoryStore.set("ytmViewLoadingStatus", getLoadingText().loadedYouTubeMusic);
     }
   });
 
@@ -1202,11 +1220,11 @@ const createYTMView = (): void => {
       if (ytmViewLoadTimeout) clearTimeout(ytmViewLoadTimeout);
 
       memoryStore.set("ytmViewLoadingError", true);
-      memoryStore.set("ytmViewLoadingStatus", `Failed to load YouTube Music: ${errorDescription} (${errorCode})`);
+      memoryStore.set("ytmViewLoadingStatus", getLoadingText().failedToLoadYouTubeMusic(errorDescription, errorCode));
     }
   });
 
-  memoryStore.set("ytmViewLoadingStatus", "Initialized");
+  memoryStore.set("ytmViewLoadingStatus", getLoadingText().initialized);
 
   let navigateDefault = true;
 
@@ -1921,7 +1939,7 @@ app.on("ready", async () => {
   log.info("Created main window");
 
   memoryStore.set("ytmViewLoading", true);
-  memoryStore.set("ytmViewLoadingStatus", "Checking for updates...");
+  memoryStore.set("ytmViewLoadingStatus", getLoadingText().checkingForUpdates);
 
   // Check for application updates
   if (app.isPackaged && !shouldDisableUpdates() && !YTMD_DISABLE_UPDATES) {
