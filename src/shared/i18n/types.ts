@@ -1,5 +1,13 @@
 export type TranslationSchema = {
   app: {
+    closeDialog: {
+      minimizeToTray: string;
+      quit: string;
+      cancel: string;
+      title: string;
+      message: string;
+      detail: string;
+    };
     loading: {
       checkingForUpdates: string;
       downloadingUpdate: string;

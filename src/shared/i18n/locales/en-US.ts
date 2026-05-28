@@ -2,6 +2,14 @@ import { TranslationSchema } from "../types";
 
 const enUS: TranslationSchema = {
   app: {
+    closeDialog: {
+      minimizeToTray: "Minimize to tray",
+      quit: "Quit",
+      cancel: "Cancel",
+      title: "Close YouTube Music Desktop?",
+      message: "Do you want to keep YouTube Music Desktop running in the tray?",
+      detail: "Minimizing to tray keeps playback and integrations running in the background."
+    },
     loading: {
       checkingForUpdates: "Checking for updates...",
       downloadingUpdate: "Downloading update...",

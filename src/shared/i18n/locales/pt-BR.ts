@@ -2,6 +2,14 @@ import { TranslationSchema } from "../types";
 
 const ptBR: TranslationSchema = {
   app: {
+    closeDialog: {
+      minimizeToTray: "Minimizar para a bandeja",
+      quit: "Sair",
+      cancel: "Cancelar",
+      title: "Fechar o YouTube Music Desktop?",
+      message: "Deseja manter o YouTube Music Desktop rodando na bandeja?",
+      detail: "Minimizar para a bandeja mantem a reproducao e as integracoes rodando em segundo plano."
+    },
     loading: {
       checkingForUpdates: "Verificando atualizacoes...",
       downloadingUpdate: "Baixando atualizacao...",

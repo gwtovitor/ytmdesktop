@@ -332,12 +332,14 @@ function getMainWindowCloseAction() {
     return CloseAction.MinimizeToTray;
   }
 
+  const closeDialogText = getTranslations(store.get("general.language")).app.closeDialog;
+
   const choice = dialog.showMessageBoxSync(mainWindow, {
     type: "question",
-    buttons: ["Minimize to tray", "Quit", "Cancel"],
-    title: "Close YouTube Music Desktop?",
-    message: "Do you want to keep YouTube Music Desktop running in the tray?",
-    detail: "Minimizing to tray keeps playback and integrations running in the background.",
+    buttons: [closeDialogText.minimizeToTray, closeDialogText.quit, closeDialogText.cancel],
+    title: closeDialogText.title,
+    message: closeDialogText.message,
+    detail: closeDialogText.detail,
     defaultId: 0,
     cancelId: 2,
     noLink: true
